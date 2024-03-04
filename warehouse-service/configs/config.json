@@ -1,0 +1,5 @@
+{
+  "port": 3000,
+  "dbUrl": "postgresql://postgres:postgres@db:5432/warehouse?sslmode=disable",
+  "rabbitmqUrl": "amqp://guest:guest@rabbitmq:5672"
+}

@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  server:
+    build: .
+    ports:
+      - "4000:3000"
+    networks:
+      - notifications-service_my-network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    build:
+      dockerfile: db.Dockerfile
+    environment:
+      POSTGRES_DB: "warehouse"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    networks:
+      - notifications-service_my-network
+    healthcheck:
+      test: pg_isready
+      interval: 3s
+      timeout: 15s
+      retries: 5
+
+networks:
+  notifications-service_my-network:
+    external: true

@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  server:
+    build: .
+    ports:
+      - "4001:3001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - my-network
+
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq
+    ports:
+      - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
