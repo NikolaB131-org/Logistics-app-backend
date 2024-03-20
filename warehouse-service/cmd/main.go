@@ -18,7 +18,7 @@ func main() {
 	http.HandleFunc("/products", handlers.HandleProducts)
 
 	fmt.Printf("warehouse-service is listening on port %s\n", os.Getenv("PORT"))
-	err := http.ListenAndServe(os.Getenv("PORT"), nil)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
