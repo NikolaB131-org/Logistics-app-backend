@@ -7,6 +7,4 @@ WORKDIR /app/cmd
 
 RUN GOOS=linux go build -o main_bin main.go
 
-EXPOSE 4000
-
 CMD ["./main_bin"]

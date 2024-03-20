@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/NikolaB131-org/logistics-backend/warehouse-service/internal/config"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -14,7 +13,7 @@ var channel *amqp.Channel
 var notificationQueue amqp.Queue
 
 func ConnectRabbitMQ() {
-	conn, err := amqp.Dial(config.Config.RabbitmqUrl)
+	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
 	if err != nil {
 		fmt.Printf("Unable to connect rabbitmq: %v\n", err)
 		os.Exit(1)

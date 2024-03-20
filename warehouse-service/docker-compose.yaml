@@ -1,6 +1,10 @@
 version: '3.8'
 services:
   server:
+    environment:
+      - PORT=3000
+      - DB_URL=postgresql://postgres:postgres@db:5432/warehouse?sslmode=disable
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     build: .
     ports:
       - "4000:3000"

@@ -1,6 +1,9 @@
 version: '3.8'
 services:
   server:
+    environment:
+      - PORT=3001
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     build: .
     ports:
       - "4001:3001"

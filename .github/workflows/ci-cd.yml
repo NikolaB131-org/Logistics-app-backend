@@ -12,30 +12,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build notifications-service docker image
-        run: |
-          cd notifications-service
-          docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/notifications-service:latest
-
-      - name: Build warehouse-service docker image
-        run: |
-          cd warehouse-service
-          docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/warehouse-service:latest
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Push notifications-service
+      - name: Build and push notifications-service docker image
         run: |
           cd notifications-service
+          docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/notifications-service:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/notifications-service:latest
 
-      - name: Push warehouse-service
+      - name: Build and push warehouse-service docker image
         run: |
           cd warehouse-service
+          docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/warehouse-service:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/warehouse-service:latest
 
   push_docker_images_yandex_cloud:
@@ -44,16 +36,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build notifications-service docker image
-        run: |
-          cd notifications-service
-          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-notifications-service:latest
-
-      - name: Build warehouse-service docker image
-        run: |
-          cd warehouse-service
-          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
-
       - name: Login to YC Registry
         uses: docker/login-action@v3
         with:
@@ -61,12 +43,31 @@ jobs:
           username: json_key
           password: ${{ secrets.YC_KEYS }}
 
-      - name: Push notifications-service
+      - name: Build and push notifications-service docker image
         run: |
-          cd warehouse-service
+          cd notifications-service
+          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-notifications-service:latest
           docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-notifications-service:latest
 
-      - name: Push warehouse-service
+      - name: Build and push warehouse-service docker image
         run: |
           cd warehouse-service
+          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
           docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: push_docker_images_yandex_cloud
+    steps:
+      - name: Deploy serverless container
+        uses: yc-actions/yc-sls-container-deploy@v2
+        with:
+          yc-sa-json-credentials: ${{ secrets.YC_KEYS }}
+          container-name: ${{ secrets.YC_CONTAINER_NAME }}
+          folder-id: ${{ secrets.YC_FOLDER_ID }}
+          revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/notifications-service:latest
+          revision-service-account-id: ${{ secrets.YC_SA_ID }}
+          revision-env: |
+            PORT=4001
+            RABBITMQ_URL=${{ secrets.RABBITMQ_URL }}

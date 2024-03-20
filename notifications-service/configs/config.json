@@ -1,4 +1,0 @@
-{
-  "port": 3001,
-  "rabbitmqUrl": "amqp://guest:guest@rabbitmq:5672"
-}

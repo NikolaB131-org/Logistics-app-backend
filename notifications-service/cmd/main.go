@@ -4,25 +4,20 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/NikolaB131-org/logistics-backend/notifications-service/handlers"
-	"github.com/NikolaB131-org/logistics-backend/notifications-service/internal/config"
 	"github.com/NikolaB131-org/logistics-backend/notifications-service/rabbitmq"
 )
 
 func main() {
-	err := config.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	rabbitmq.ConnectRabbitMQ()
 	rabbitmq.ListenForNotifications()
 
 	http.HandleFunc("/subscribe", handlers.HandleGetSubscribe)
 
-	fmt.Printf("notifications-service is listening port %d\n", config.Config.Port)
-	err = http.ListenAndServe(fmt.Sprintf(":%d", config.Config.Port), nil)
+	fmt.Printf("notifications-service is listening on port %s\n", os.Getenv("PORT"))
+	err := http.ListenAndServe(os.Getenv("PORT"), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
