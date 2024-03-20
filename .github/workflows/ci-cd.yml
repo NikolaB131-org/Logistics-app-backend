@@ -66,7 +66,7 @@ jobs:
           yc-sa-json-credentials: ${{ secrets.YC_KEYS }}
           container-name: ${{ secrets.YC_CONTAINER_NAME }}
           folder-id: ${{ secrets.YC_FOLDER_ID }}
-          revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/notifications-service:latest
+          revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-notifications-service:latest
           revision-service-account-id: ${{ secrets.YC_SA_ID }}
           revision-env: |
             PORT=4001
