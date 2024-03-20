@@ -3,11 +3,11 @@ name: CI/CD
 on:
   push:
     branches:
-      - 'main'
+      - "main"
 
 jobs:
   push_docker_images_dockerhub:
-    name: 'Build and push docker images to Docker Hub'
+    name: "Build and push docker images to Docker Hub"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,9 +38,8 @@ jobs:
           cd warehouse-service
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/warehouse-service:latest
 
-
   push_docker_images_yandex_cloud:
-    name: 'Build and push docker images to YC Registry'
+    name: "Build and push docker images to YC Registry"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,12 +47,12 @@ jobs:
       - name: Build notifications-service docker image
         run: |
           cd notifications-service
-          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/notifications-service:latest
+          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}/notifications-service:latest
 
       - name: Build warehouse-service docker image
         run: |
           cd warehouse-service
-          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/warehouse-service:latest
+          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}/warehouse-service:latest
 
       - name: Login to YC Registry
         uses: docker/login-action@v3
@@ -65,9 +64,9 @@ jobs:
       - name: Push notifications-service
         run: |
           cd warehouse-service
-          docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/notifications-service:latest
+          docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}/notifications-service:latest
 
       - name: Push warehouse-service
         run: |
           cd warehouse-service
-          docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/warehouse-service:latest
+          docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}/warehouse-service:latest
