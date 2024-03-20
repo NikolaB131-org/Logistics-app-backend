@@ -61,7 +61,7 @@ jobs:
     needs: push_docker_images_yandex_cloud
     steps:
       - name: Deploy serverless container
-        uses: yc-actions/yc-sls-container-deploy@v2
+        uses: yc-actions/yc-sls-container-deploy@v1
         with:
           yc-sa-json-credentials: ${{ secrets.YC_KEYS }}
           container-name: ${{ secrets.YC_CONTAINER_NAME }}
