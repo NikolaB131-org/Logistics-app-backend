@@ -61,7 +61,7 @@ jobs:
     needs: push_docker_images_yandex_cloud
     steps:
       - name: Deploy serverless container
-        uses: yc-actions/yc-sls-container-deploy@v1
+        uses: yc-actions/yc-sls-container-deploy@v2
         with:
           yc-sa-json-credentials: ${{ secrets.YC_KEYS }}
           container-name: ${{ secrets.YC_CONTAINER_NAME }}
@@ -69,5 +69,4 @@ jobs:
           revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-notifications-service:latest
           revision-service-account-id: ${{ secrets.YC_SA_ID }}
           revision-env: |
-            PORT=4001
             RABBITMQ_URL=${{ secrets.RABBITMQ_URL }}
