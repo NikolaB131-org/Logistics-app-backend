@@ -13,7 +13,9 @@ import (
 func HandleProducts(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		handleGetProducts(w, r)
+		handleGetProducts(w)
+	case http.MethodPatch:
+		handleDecreaseProductQuantity(w, r)
 	case http.MethodPost:
 		handlePostProduct(w, r)
 	default:
@@ -21,7 +23,7 @@ func HandleProducts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleGetProducts(w http.ResponseWriter, r *http.Request) {
+func handleGetProducts(w http.ResponseWriter) {
 	jsonResp, err := json.Marshal(models.GetProducts())
 	if err != nil {
 		fmt.Println("Error happened in JSON marshal: ", err)
@@ -32,8 +34,36 @@ func handleGetProducts(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-func handleGetProduct(w http.ResponseWriter, r *http.Request) {
+func handleDecreaseProductQuantity(w http.ResponseWriter, r *http.Request) {
+	headerContentTtype := r.Header.Get("Content-Type")
+	if headerContentTtype != "application/json" {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		w.Write([]byte("Content-Type is not application/json"))
+		return
+	}
+	var b models.DecreaseProductQuantityBody
+	var unmarshalErr *json.UnmarshalTypeError
 
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&b)
+	if err != nil {
+		if errors.As(err, &unmarshalErr) {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad Request. Wrong Type provided for field " + unmarshalErr.Field))
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad Request"))
+		}
+		return
+	}
+
+	err = models.DecreaseProductQuantity(b)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func handlePostProduct(w http.ResponseWriter, r *http.Request) {
