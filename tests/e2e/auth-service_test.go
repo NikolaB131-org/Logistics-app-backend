@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -22,7 +21,10 @@ func TestAuthServiceSuite(t *testing.T) {
 }
 
 func (s *AuthServiceSuite) SetupSuite() {
-	s.httpClient = &http.Client{Timeout: 10 * time.Second}
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.DisableKeepAlives = true
+
+	s.httpClient = &http.Client{Transport: t}
 }
 
 func (s *AuthServiceSuite) TestWithoutRoles() {
