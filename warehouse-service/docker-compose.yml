@@ -20,6 +20,8 @@ services:
   warehouse-db:
     build:
       dockerfile: db.Dockerfile
+    ports:
+      - "666:5432"
     environment:
       POSTGRES_DB: warehouse
       POSTGRES_USER: postgres

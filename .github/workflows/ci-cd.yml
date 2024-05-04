@@ -85,3 +85,4 @@ jobs:
           revision-service-account-id: ${{ secrets.YC_SA_ID }}
           revision-env: |
             RABBITMQ_URL=${{ secrets.RABBITMQ_URL }}
+            DB_URL=${{ secrets.RABBITMQ_URL }}
