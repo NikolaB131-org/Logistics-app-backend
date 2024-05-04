@@ -103,7 +103,11 @@ func (s *AuthServiceSuite) TestToken() {
 	})
 
 	// Register
-	res, err := http.Post("http://localhost:4000/auth/register", "application/json", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodGet, "http://localhost:4000/auth/register", bytes.NewBuffer(body))
+	s.Require().NoError(err)
+
+	res, err := s.httpClient.Do(req)
+	// res, err := http.Post("http://localhost:4000/auth/register", "application/json", bytes.NewBuffer(body))
 	s.Require().NoError(err)
 	defer res.Body.Close()
 
@@ -122,7 +126,7 @@ func (s *AuthServiceSuite) TestToken() {
 	token := data["token"]
 
 	// Valid token
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:4000/warehouse/products", nil)
+	req, err = http.NewRequest(http.MethodGet, "http://localhost:4000/warehouse/products", nil)
 	s.Require().NoError(err)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 
