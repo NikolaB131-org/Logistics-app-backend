@@ -40,7 +40,10 @@ jobs:
 
       - name: Build and push auth-service docker image
         run: |
-          docker build -f ./auth-service/Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest .
+          cd ./auth-service
+          mkdir -p ./temp
+          cp -R ../proto ./temp
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
 
   push_docker_images_yandex_cloud:

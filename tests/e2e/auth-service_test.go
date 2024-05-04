@@ -32,7 +32,7 @@ func (s *AuthServiceSuite) TestWithoutRoles() {
 	})
 
 	// Register
-	res, err := http.Post("http://localhost:4000/auth/register", "application/json", bytes.NewBuffer(body))
+	res, err := http.Post("http://127.0.0.1:4000/auth/register", "application/json", bytes.NewBuffer(body))
 	s.Require().NoError(err)
 	defer res.Body.Close()
 
