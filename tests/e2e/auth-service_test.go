@@ -103,7 +103,7 @@ func (s *AuthServiceSuite) TestToken() {
 	})
 
 	// Register
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:4000/auth/register", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, "http://localhost:4000/auth/register", bytes.NewBuffer(body))
 	s.Require().NoError(err)
 
 	res, err := s.httpClient.Do(req)
