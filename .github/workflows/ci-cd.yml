@@ -61,7 +61,7 @@ jobs:
           cd ./warehouse-service
           mkdir -p ./temp
           cp -R ../proto ./temp
-          docker build -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
+          docker build -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest .
           docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
 
   deploy:
