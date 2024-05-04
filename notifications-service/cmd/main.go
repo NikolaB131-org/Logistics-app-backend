@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -19,6 +18,6 @@ func main() {
 	fmt.Printf("notifications-service is listening on port %s\n", os.Getenv("PORT"))
 	err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }

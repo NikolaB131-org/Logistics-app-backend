@@ -1,0 +1,40 @@
+version: '3.8'
+name: orders-service
+services:
+  server:
+    environment:
+      PORT: 3000
+      DB_URL: postgresql://postgres:postgres@orders-db:5432/orders?sslmode=disable
+      WAREHOUSE_GRPC_URL: warehouse:3000
+    build: .
+    ports:
+      - "4003:3000"
+    networks:
+      - local-network
+      - auth-service_my-network
+    depends_on:
+      orders-db:
+        condition: service_healthy
+
+  orders-db:
+    build:
+      dockerfile: db.Dockerfile
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "9000:5432"
+    healthcheck:
+      test: pg_isready
+      interval: 3s
+      timeout: 15s
+      retries: 5
+    networks:
+      - local-network
+
+networks:
+  local-network:
+    driver: bridge
+  auth-service_my-network:
+    external: true

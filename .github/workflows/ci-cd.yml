@@ -6,8 +6,28 @@ on:
       - "main"
 
 jobs:
+  tests:
+    name: "Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run all docker compose
+        run: make docker-up-all
+
+      - name: e2e tests
+        run: make e2e-tests
+
+      - name: integration tests
+        run: |
+          cd ./warehouse-service
+          make integration-tests
+
   push_docker_images_dockerhub:
-    name: "Build and push docker images to Docker Hub"
+    name: Build and push docker images to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,20 +38,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push notifications-service docker image
+      - name: Build and push auth-service docker image
         run: |
-          cd notifications-service
-          docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/notifications-service:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/notifications-service:latest
-
-      - name: Build and push warehouse-service docker image
-        run: |
-          cd warehouse-service
-          docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/warehouse-service:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/warehouse-service:latest
+          docker build -f ./auth-service/Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
 
   push_docker_images_yandex_cloud:
-    name: "Build and push docker images to YC Registry"
+    name: Build and push docker images to YC Registry
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,16 +56,9 @@ jobs:
           username: json_key
           password: ${{ secrets.YC_KEYS }}
 
-      - name: Build and push notifications-service docker image
-        run: |
-          cd notifications-service
-          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-notifications-service:latest
-          docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-notifications-service:latest
-
       - name: Build and push warehouse-service docker image
         run: |
-          cd warehouse-service
-          docker build . -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
+          docker build -f ./warehouse-service/Dockerfile -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
           docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
 
   deploy:
@@ -66,7 +72,7 @@ jobs:
           yc-sa-json-credentials: ${{ secrets.YC_KEYS }}
           container-name: ${{ secrets.YC_CONTAINER_NAME }}
           folder-id: ${{ secrets.YC_FOLDER_ID }}
-          revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-notifications-service:latest
+          revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
           revision-service-account-id: ${{ secrets.YC_SA_ID }}
           revision-env: |
             RABBITMQ_URL=${{ secrets.RABBITMQ_URL }}

@@ -3,23 +3,26 @@ package rabbitmq
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-var channel *amqp.Channel
-var notificationQueue amqp.Queue
+type RabbitMQ struct {
+	Channel           *amqp.Channel
+	NotificationQueue amqp.Queue
+}
 
-func ConnectRabbitMQ() {
-	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
+func New(url string) (*RabbitMQ, error) {
+	conn, err := amqp.Dial(url)
 	if err != nil {
-		fmt.Printf("Unable to connect rabbitmq: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("unable to connect rabbitmq: %w", err)
 	}
-	channel, _ = conn.Channel()
-	notificationQueue, _ = channel.QueueDeclare(
+	channel, err := conn.Channel()
+	if err != nil {
+		return nil, err
+	}
+	notificationQueue, err := channel.QueueDeclare(
 		"notifications", // name
 		false,           // durable
 		false,           // autoDelete
@@ -27,17 +30,25 @@ func ConnectRabbitMQ() {
 		false,           // noWait
 		nil,             // arguments
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RabbitMQ{
+		Channel:           channel,
+		NotificationQueue: notificationQueue,
+	}, nil
 }
 
-func SendNotification(message string) {
+func (r *RabbitMQ) SendNotification(message string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	channel.PublishWithContext(ctx,
-		"",                     // exchange
-		notificationQueue.Name, // routing key
-		false,                  // mandatory
-		false,                  // immediate
+	r.Channel.PublishWithContext(ctx,
+		"",                       // exchange
+		r.NotificationQueue.Name, // routing key
+		false,                    // mandatory
+		false,                    // immediate
 		amqp.Publishing{
 			ContentType: "text/plain",
 			Body:        []byte(message),

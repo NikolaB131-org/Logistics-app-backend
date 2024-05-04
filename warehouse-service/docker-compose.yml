@@ -1,0 +1,39 @@
+version: '3.8'
+name: warehouse-service
+services:
+  server:
+    hostname: warehouse
+    environment:
+      PORT: 3000
+      DB_URL: postgresql://postgres:postgres@warehouse-db:5432/warehouse?sslmode=disable
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    build: .
+    ports:
+      - "4002:3000"
+    networks:
+      - local-network
+      - auth-service_my-network
+    depends_on:
+      warehouse-db:
+        condition: service_healthy
+
+  warehouse-db:
+    build:
+      dockerfile: db.Dockerfile
+    environment:
+      POSTGRES_DB: warehouse
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: pg_isready
+      interval: 3s
+      timeout: 15s
+      retries: 5
+    networks:
+      - local-network
+
+networks:
+  local-network:
+    driver: bridge
+  auth-service_my-network:
+    external: true

@@ -1,0 +1,25 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+option go_package = "github.com/NikolaB131-org/logistics-backend/proto/warehouse";
+
+service WarehouseService {
+  rpc DecreaseProductQuantity(DecreaseProductQuantityRequest) returns (google.protobuf.Empty);
+  rpc GetProducts(google.protobuf.Empty) returns (GetProductsResponse);
+  rpc CreateProduct(Product) returns (google.protobuf.Empty);
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  int64 quantity = 3;
+  float price = 4;
+}
+
+message DecreaseProductQuantityRequest {
+  string id = 1;
+  int64 quantity = 2;
+}
+
+message GetProductsResponse {
+  repeated Product products = 1;
+}

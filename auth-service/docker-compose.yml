@@ -1,0 +1,135 @@
+version: '3.8'
+name: auth-service
+services:
+  server:
+    environment:
+      PORT: 3000
+      OTLP_URL: tempo:4317
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_CLIENT_ID: logistics_backend
+      KEYCLOAK_CLIENT_SECRET: VGobO70BvaFeKZ1PjR5KZKH7rwx9Ovjr
+      KEYCLOAK_REALM: master
+      WAREHOUSE_GRPC_URL: warehouse:3000
+    build: .
+    ports:
+      - "4000:3000"
+    networks:
+      - local-network
+      - my-network
+    depends_on:
+      tempo:
+        condition: service_started
+      keycloak:
+        condition: service_healthy
+
+  tempo:
+    hostname: tempo
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+      - ./data/tempo:/tmp/tempo
+    networks:
+      - local-network
+
+  grafana:
+    image: grafana/grafana:10.1.1
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./data/grafana:/var/lib/grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: true
+      GF_FEATURE_TOGGLES_ENABLE: traceqlEditor
+    ports:
+      - "5001:3000"
+    networks:
+      - local-network
+    depends_on:
+      - influxdb
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    ports:
+      - "5002:9090"
+    networks:
+      - local-network
+
+  influxdb:
+    image: influxdb:2-alpine
+    volumes:
+      - ./data/influxdb:/var/lib/influxdb2:rw
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: 12345678
+      DOCKER_INFLUXDB_INIT_ORG: NikolaB131-org
+      DOCKER_INFLUXDB_INIT_BUCKET: main_bucket
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: test_token
+    ports:
+      - "5003:8086"
+    networks:
+      - local-network
+
+  telegraf:
+    hostname: telegraf
+    image: telegraf:alpine
+    depends_on:
+      - influxdb
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    networks:
+      - local-network
+
+  keycloak:
+    hostname: keycloak
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: postgres_username
+      KC_DB_PASSWORD: postgres_password
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "5000:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080;echo -e \"GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
+      interval: 3s
+      timeout: 30s
+      retries: 15
+    networks:
+      - local-network
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+
+  keycloak-db:
+    image: postgres:16.2-alpine
+    volumes:
+      - ./data/postgres-keycloak:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: postgres_username
+      POSTGRES_PASSWORD: postgres_password
+    healthcheck:
+      test: pg_isready
+      interval: 3s
+      timeout: 15s
+      retries: 5
+    networks:
+      - local-network
+
+networks:
+  local-network:
+    driver: bridge
+  my-network:
+    driver: bridge

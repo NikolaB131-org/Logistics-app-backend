@@ -1,10 +1,11 @@
-FROM golang:1.22.0-alpine
+FROM golang:1.22-alpine
+
+RUN apk add make
 
 COPY . /app
 
-# Very important to set WORKDIR to folder where your program entry point is!
-WORKDIR /app/cmd
+WORKDIR /app
 
-RUN GOOS=linux go build -o main_bin main.go
+RUN make build-linux
 
-CMD ["./main_bin"]
+CMD ["./bin/app"]

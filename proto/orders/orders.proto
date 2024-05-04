@@ -1,0 +1,21 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+option go_package = "github.com/NikolaB131-org/logistics-backend/proto/orders";
+
+service OrdersService {
+  rpc GetOrders(google.protobuf.Empty) returns (GetOrdersResponse);
+  rpc CreateOrder(Order) returns (google.protobuf.Empty);
+}
+
+message Order {
+  repeated Item items = 1;
+}
+
+message Item {
+  string id = 1;
+  int64 quantity = 2;
+}
+
+message GetOrdersResponse {
+  repeated Order orders = 1;
+}

@@ -2,24 +2,43 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
+	"log/slog"
+	"net"
 	"os"
 
 	"github.com/NikolaB131-org/logistics-backend/warehouse-service/db"
-	"github.com/NikolaB131-org/logistics-backend/warehouse-service/handlers"
+	grpccontroller "github.com/NikolaB131-org/logistics-backend/warehouse-service/internal/controller/grpc"
+	"github.com/NikolaB131-org/logistics-backend/warehouse-service/internal/repository"
+	"github.com/NikolaB131-org/logistics-backend/warehouse-service/internal/service"
 	"github.com/NikolaB131-org/logistics-backend/warehouse-service/rabbitmq"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	db.ConnectDatabase()
-	rabbitmq.ConnectRabbitMQ()
-
-	http.HandleFunc("/products", handlers.HandleProducts)
-
-	fmt.Printf("warehouse-service is listening on port %s\n", os.Getenv("PORT"))
-	err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil)
+	err := db.ConnectDatabase(os.Getenv("DB_URL"))
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
+	}
+	rabbitmqClient, err := rabbitmq.New(os.Getenv("RABBITMQ_URL"))
+	if err != nil {
+		panic(err)
+	}
+
+	productRepository := repository.NewProductRepository()
+
+	warehouseService := service.NewWarehouseService(productRepository)
+
+	gRPCServer := grpc.NewServer()
+
+	grpccontroller.Register(gRPCServer, warehouseService, rabbitmqClient)
+
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("PORT")))
+	if err != nil {
+		panic(err)
+	}
+	slog.Info("gRPC server started", slog.String("port", os.Getenv("PORT")))
+
+	if err := gRPCServer.Serve(listener); err != nil {
+		panic(err)
 	}
 }

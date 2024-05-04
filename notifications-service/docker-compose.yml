@@ -1,0 +1,33 @@
+version: '3.8'
+name: notifications-service
+services:
+  server:
+    environment:
+      PORT: 3000
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    build: .
+    ports:
+      - "4001:3000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - auth-service_my-network
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    user: rabbitmq
+    ports:
+      - "5004:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 3s
+      timeout: 5s
+      retries: 15
+    networks:
+      - auth-service_my-network
+
+networks:
+  auth-service_my-network:
+    external: true
