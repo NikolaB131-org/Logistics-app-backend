@@ -58,7 +58,7 @@ jobs:
 
       - name: Build and push warehouse-service docker image
         run: |
-          docker build -f ./warehouse-service/Dockerfile -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
+          docker build -f ./warehouse-service/Dockerfile -t cr.yandex/${{secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest .
           docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ secrets.MY_SURNAME }}-warehouse-service:latest
 
   deploy:
