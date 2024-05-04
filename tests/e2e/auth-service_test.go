@@ -97,7 +97,7 @@ func (s *AuthServiceSuite) TestWithIncorrectRole() {
 }
 
 func (s *AuthServiceSuite) TestToken() {
-	body := []byte(’{"email":"testemail3@go.com","password": "qwerty"}’)
+	body := []byte(`{"email":"testemail3@go.com","password": "qwerty"}`)
 
 	// Register
 	req, err := http.NewRequest(http.MethodPost, "http://localhost:4000/auth/register", bytes.NewBuffer(body))
